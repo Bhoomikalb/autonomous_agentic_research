@@ -1,63 +1,85 @@
 import streamlit as st
-from graphs.research_graph import app
 import pandas as pd
 import matplotlib.pyplot as plt
 import io
+import os
+from graphs.research_graph import app  # Your agent wrapper
 
-# --- Streamlit page setup ---
+# -------------------------
+# Page configuration
+# -------------------------
 st.set_page_config(
     page_title="Autonomous Agentic Researcher",
     layout="wide"
 )
+
 st.title("Autonomous Agentic Research Assistant")
 
-# --- Sidebar controls ---
+# -------------------------
+# Load API keys from environment
+# -------------------------
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+
+if not GROQ_API_KEY or not TAVILY_API_KEY:
+    st.warning("API keys not set. Add them in Streamlit Secrets.")
+    st.stop()
+
+# -------------------------
+# Sidebar controls
+# -------------------------
 st.sidebar.header("Controls")
 chart_type = st.sidebar.selectbox(
     "Select chart type",
     ["Bar Chart", "Line Chart"]
 )
 
-# --- User input for research topic ---
+# -------------------------
+# User input
+# -------------------------
 topic = st.text_input(
     "Research Topic",
     placeholder="Ask anything… e.g. AI in healthcare"
 )
 
-# --- Session state (important for interactivity) ---
+# -------------------------
+# Session state
+# -------------------------
 if "result" not in st.session_state:
     st.session_state.result = None
 
-# --- Start button ---
-if st.button("Start Research"):
+# -------------------------
+# Start button
+# -------------------------
+if st.button("Start Research") and topic:
     with st.spinner("Agents are researching..."):
-        st.session_state.result = app.invoke({"user_topic": topic})
-        st.success("Research Complete")
+        try:
+            # Invoke your AI agent
+            st.session_state.result = app.invoke({"user_topic": topic})
+            st.success("Research Complete")
+        except Exception as e:
+            st.error(f"Error during research: {e}")
 
-# --- Display results only if available ---
+# -------------------------
+# Display results
+# -------------------------
 if st.session_state.result:
-
     result = st.session_state.result
 
-    # --- Expandable sections ---
+    # Expandable research output
     with st.expander("Full Research Output", expanded=True):
         st.markdown(result)
 
-    # =========================
-    # 📊 INTERACTIVE METRICS
-    # =========================
+    # -------------------------
+    # Metrics sliders
+    # -------------------------
     st.subheader("📊 Research Quality Metrics")
 
     col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        novelty = st.slider("Novelty", 0, 10, 8)
-    with col2:
-        feasibility = st.slider("Feasibility", 0, 10, 6)
-    with col3:
-        data_quality = st.slider("Data Quality", 0, 10, 5)
-    with col4:
-        experiment_strength = st.slider("Experiment Strength", 0, 10, 7)
+    with col1: novelty = st.slider("Novelty", 0, 10, 8)
+    with col2: feasibility = st.slider("Feasibility", 0, 10, 6)
+    with col3: data_quality = st.slider("Data Quality", 0, 10, 5)
+    with col4: experiment_strength = st.slider("Experiment Strength", 0, 10, 7)
 
     metrics = {
         "Novelty": novelty,
@@ -71,13 +93,14 @@ if st.session_state.result:
         "Score": metrics.values()
     })
 
-    # --- Plot ---
+    # -------------------------
+    # Plot chart
+    # -------------------------
     fig, ax = plt.subplots()
-
     if chart_type == "Bar Chart":
-        ax.bar(df["Metric"], df["Score"])
+        ax.bar(df["Metric"], df["Score"], color="skyblue")
     else:
-        ax.plot(df["Metric"], df["Score"], marker="o")
+        ax.plot(df["Metric"], df["Score"], marker="o", linestyle="-", color="green")
 
     ax.set_ylim(0, 10)
     ax.set_ylabel("Score")
@@ -85,14 +108,12 @@ if st.session_state.result:
 
     st.pyplot(fig)
 
-    # =========================
-    # DOWNLOAD OPTIONS
-    # =========================
+    # -------------------------
+    # Download options
+    # -------------------------
     st.subheader("Download Outputs")
-
     colA, colB = st.columns(2)
 
-    # --- Download research summary ---
     with colA:
         paper_content = f"""
 Research Topic: {topic}
@@ -114,7 +135,6 @@ AUTONOMOUS AI OUTPUT
             mime="text/plain"
         )
 
-    # --- Download metrics ---
     with colB:
         csv_bytes = io.BytesIO()
         df.to_csv(csv_bytes, index=False)
@@ -127,9 +147,9 @@ AUTONOMOUS AI OUTPUT
             mime="text/csv"
         )
 
-    # =========================
-    # 🧠 INTERACTION TIP
-    # =========================
+    # -------------------------
+    # Interaction tip
+    # -------------------------
     st.info(
         "Tip: Adjust the sliders to explore how research quality changes. "
         "Plots update instantly without re-running the agents."
