@@ -19,12 +19,10 @@ st.title("Autonomous Agentic Research Assistant")
 # Load API keys from environment
 # -------------------------
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 
-if not GROQ_API_KEY or not TAVILY_API_KEY:
-    st.warning("API keys not set. Add them in Streamlit Secrets.")
+if not GROQ_API_KEY:
+    st.warning("GROQ_API_KEY is not set.")
     st.stop()
-
 # -------------------------
 # Sidebar controls
 # -------------------------
