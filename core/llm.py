@@ -1,6 +1,6 @@
 
 from langchain_groq import ChatGroq
-
+import os
 
 def get_llm():
     """
@@ -9,7 +9,8 @@ def get_llm():
     return ChatGroq(
         model="moonshotai/kimi-k2-instruct",
         temperature=0.3,
-        groq_api_key="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"  # direct
+
+        groq_api_key=os.getenv("GROQ_API_KEY") # direct
     )
 
 # Wrapper to mimic `.invoke(prompt)` interface

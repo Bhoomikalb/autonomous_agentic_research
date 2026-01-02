@@ -18,5 +18,14 @@ A fully autonomous AI research assistant that explores emerging scientific domai
 
 ---
 
-## **Project Structure**
+##  Tech Stack
+- Python
+- Streamlit
+- LangChain / LangGraph
+- Groq / OpenAI
+- Tavily Search
+
+## Installation
+```bash
+pip install -r requirements.txt
 
